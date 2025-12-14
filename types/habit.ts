@@ -6,7 +6,8 @@ export interface Habit {
   color: string;
   reminderTime?: string;
   completedDates: string[];
-  createdAt: string;
+  createdAt?: string;
+  dates?: { [date: string]: boolean };
 }
 
 export interface HabitCompletion {

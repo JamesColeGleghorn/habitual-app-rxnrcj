@@ -25,3 +25,25 @@ export const motivationalQuotes = [
 export function getRandomQuote(): string {
   return motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
 }
+
+export const wellnessEncouragements = [
+  'Great job staying hydrated today! 💧',
+  'You\'re crushing your step goal! 🚶',
+  'Keep up the amazing work! 🌟',
+  'Your wellness journey is inspiring! 💪',
+  'Every small step counts! 🎯',
+  'You\'re building great habits! 🏆',
+  'Your future self will thank you! 🙏',
+  'Consistency is key to success! 🔑',
+  'You\'re doing amazing! ✨',
+  'Keep pushing forward! 🚀',
+  'Sleep is your superpower! 😴',
+  'Breathe in, breathe out. You\'ve got this! 🧘',
+  'Your mood matters. Take care of yourself! 😊',
+  'Focus time is quality time! 🎯',
+  'Gratitude is the best attitude! 🙏',
+];
+
+export function getRandomEncouragement(): string {
+  return wellnessEncouragements[Math.floor(Math.random() * wellnessEncouragements.length)];
+}

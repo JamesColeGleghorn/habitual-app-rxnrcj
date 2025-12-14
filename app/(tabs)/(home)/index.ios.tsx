@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HabitCard } from '@/components/HabitCard';
 import { IconSymbol } from '@/components/IconSymbol';
 import { useHabits } from '@/hooks/useHabits';
+import { useWellness } from '@/hooks/useWellness';
 import { useThemeColors } from '@/styles/commonStyles';
 import { getRandomQuote } from '@/utils/motivationalQuotes';
 
@@ -14,7 +15,9 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
   const { habits, loading, toggleHabitCompletion } = useHabits();
+  const { calculateStreak } = useWellness();
   const [quote] = useState(getRandomQuote());
+  const wellnessStreak = calculateStreak();
 
   const handleAddHabit = () => {
     router.push('/modal');
@@ -36,6 +39,55 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>Habit Streak</Text>
           <Text style={styles.subtitle}>Build better habits, one day at a time</Text>
+        </View>
+
+        <View style={styles.quickAccessSection}>
+          <TouchableOpacity 
+            style={styles.quickAccessCard}
+            onPress={() => router.push('/(tabs)/(home)/dashboard')}
+          >
+            <View style={styles.quickAccessIcon}>
+              <IconSymbol
+                ios_icon_name="heart.circle.fill"
+                android_material_icon_name="favorite"
+                size={32}
+                color={colors.primary}
+              />
+            </View>
+            <Text style={styles.quickAccessTitle}>Wellness Dashboard</Text>
+            <Text style={styles.quickAccessSubtitle}>
+              Track steps, water, sleep & more
+            </Text>
+            {wellnessStreak > 0 && (
+              <View style={styles.streakBadge}>
+                <IconSymbol
+                  ios_icon_name="flame.fill"
+                  android_material_icon_name="local_fire_department"
+                  size={16}
+                  color={colors.secondary}
+                />
+                <Text style={styles.streakText}>{wellnessStreak} days</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.quickAccessCard}
+            onPress={() => router.push('/(tabs)/(home)/insights')}
+          >
+            <View style={styles.quickAccessIcon}>
+              <IconSymbol
+                ios_icon_name="chart.bar.fill"
+                android_material_icon_name="bar_chart"
+                size={32}
+                color={colors.secondary}
+              />
+            </View>
+            <Text style={styles.quickAccessTitle}>Weekly Insights</Text>
+            <Text style={styles.quickAccessSubtitle}>
+              View trends & correlations
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.quoteCard}>
@@ -119,6 +171,52 @@ const createStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.c
   subtitle: {
     fontSize: 16,
     color: colors.textSecondary,
+  },
+  quickAccessSection: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 24,
+  },
+  quickAccessCard: {
+    flex: 1,
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  quickAccessIcon: {
+    marginBottom: 12,
+  },
+  quickAccessTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  quickAccessSubtitle: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    lineHeight: 16,
+  },
+  streakBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    backgroundColor: colors.background,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  streakText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.text,
+    marginLeft: 4,
   },
   quoteCard: {
     backgroundColor: colors.card,

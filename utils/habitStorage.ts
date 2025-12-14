@@ -104,4 +104,42 @@ export const habitStorage = {
       throw error;
     }
   },
+
+  async initializeDefaultHabits(): Promise<void> {
+    try {
+      const existingHabits = await this.getHabits();
+      if (existingHabits.length === 0) {
+        const defaultHabits: Habit[] = [
+          {
+            id: '1',
+            name: 'Drink Water',
+            icon: '💧',
+            color: '#4A90E2',
+            dates: {},
+            completedDates: [],
+          },
+          {
+            id: '2',
+            name: 'Exercise',
+            icon: '🏃',
+            color: '#29ABE2',
+            dates: {},
+            completedDates: [],
+          },
+          {
+            id: '3',
+            name: 'Read',
+            icon: '📚',
+            color: '#F2BE22',
+            dates: {},
+            completedDates: [],
+          },
+        ];
+        await this.saveHabits(defaultHabits);
+        console.log('Default habits initialized');
+      }
+    } catch (error) {
+      console.error('Error initializing default habits:', error);
+    }
+  },
 };
