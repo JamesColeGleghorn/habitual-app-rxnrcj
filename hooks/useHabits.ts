@@ -9,10 +9,15 @@ export function useHabits() {
   const [loading, setLoading] = useState(true);
 
   const loadHabits = useCallback(async () => {
-    setLoading(true);
-    const loadedHabits = await habitStorage.getHabits();
-    setHabits(loadedHabits);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const loadedHabits = await habitStorage.getHabits();
+      setHabits(loadedHabits);
+    } catch (error) {
+      console.error('Error in loadHabits:', error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -20,30 +25,50 @@ export function useHabits() {
   }, [loadHabits]);
 
   const addHabit = useCallback(async (habit: Omit<Habit, 'id' | 'completedDates' | 'createdAt'>) => {
-    const newHabit: Habit = {
-      ...habit,
-      id: Date.now().toString(),
-      completedDates: [],
-      createdAt: new Date().toISOString(),
-    };
-    await habitStorage.addHabit(newHabit);
-    await loadHabits();
+    try {
+      const newHabit: Habit = {
+        ...habit,
+        id: Date.now().toString(),
+        completedDates: [],
+        createdAt: new Date().toISOString(),
+      };
+      await habitStorage.addHabit(newHabit);
+      await loadHabits();
+    } catch (error) {
+      console.error('Error in addHabit:', error);
+      throw error;
+    }
   }, [loadHabits]);
 
   const updateHabit = useCallback(async (habitId: string, updates: Partial<Habit>) => {
-    await habitStorage.updateHabit(habitId, updates);
-    await loadHabits();
+    try {
+      await habitStorage.updateHabit(habitId, updates);
+      await loadHabits();
+    } catch (error) {
+      console.error('Error in updateHabit:', error);
+      throw error;
+    }
   }, [loadHabits]);
 
   const deleteHabit = useCallback(async (habitId: string) => {
-    await habitStorage.deleteHabit(habitId);
-    await loadHabits();
+    try {
+      await habitStorage.deleteHabit(habitId);
+      await loadHabits();
+    } catch (error) {
+      console.error('Error in deleteHabit:', error);
+      throw error;
+    }
   }, [loadHabits]);
 
   const toggleHabitCompletion = useCallback(async (habitId: string) => {
-    const today = getTodayDateString();
-    await habitStorage.toggleHabitCompletion(habitId, today);
-    await loadHabits();
+    try {
+      const today = getTodayDateString();
+      await habitStorage.toggleHabitCompletion(habitId, today);
+      await loadHabits();
+    } catch (error) {
+      console.error('Error in toggleHabitCompletion:', error);
+      throw error;
+    }
   }, [loadHabits]);
 
   return {

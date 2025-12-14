@@ -1,6 +1,18 @@
 
-import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { StyleSheet, useColorScheme } from 'react-native';
 
+export const getColors = (isDark: boolean) => ({
+  background: isDark ? '#000000' : '#F7F9FC',
+  text: isDark ? '#FFFFFF' : '#2D3436',
+  textSecondary: isDark ? '#A1A1AA' : '#747A7C',
+  primary: '#29ABE2',
+  secondary: '#F2BE22',
+  accent: '#E74C3C',
+  card: isDark ? '#1C1C1E' : '#FFFFFF',
+  highlight: isDark ? '#1E3A2E' : '#DFF0D8',
+});
+
+// Default colors for static usage
 export const colors = {
   background: '#F7F9FC',
   text: '#2D3436',
@@ -10,6 +22,11 @@ export const colors = {
   accent: '#E74C3C',
   card: '#FFFFFF',
   highlight: '#DFF0D8',
+};
+
+export const useThemeColors = () => {
+  const colorScheme = useColorScheme();
+  return getColors(colorScheme === 'dark');
 };
 
 export const buttonStyles = StyleSheet.create({

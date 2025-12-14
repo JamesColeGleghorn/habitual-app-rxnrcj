@@ -3,7 +3,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { IconSymbol } from '@/components/IconSymbol';
 import { Habit } from '@/types/habit';
-import { colors } from '@/styles/commonStyles';
+import { useThemeColors } from '@/styles/commonStyles';
 import { isCompletedToday, getHabitStats } from '@/utils/habitStats';
 
 interface HabitCardProps {
@@ -13,8 +13,11 @@ interface HabitCardProps {
 }
 
 export function HabitCard({ habit, onToggle, onPress }: HabitCardProps) {
+  const colors = useThemeColors();
   const completed = isCompletedToday(habit);
   const stats = getHabitStats(habit);
+
+  const styles = createStyles(colors);
 
   return (
     <TouchableOpacity 
@@ -29,7 +32,10 @@ export function HabitCard({ habit, onToggle, onPress }: HabitCardProps) {
               styles.checkbox,
               completed && { backgroundColor: colors.primary, borderColor: colors.primary }
             ]}
-            onPress={onToggle}
+            onPress={(e) => {
+              e.stopPropagation();
+              onToggle();
+            }}
             activeOpacity={0.7}
           >
             {completed && (
@@ -74,13 +80,16 @@ export function HabitCard({ habit, onToggle, onPress }: HabitCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.create({
   card: {
     backgroundColor: colors.card,
     borderRadius: 16,
     padding: 16,
     marginVertical: 6,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 3,
   },
   content: {

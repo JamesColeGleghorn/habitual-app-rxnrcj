@@ -2,8 +2,9 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/IconSymbol';
-import { colors } from '@/styles/commonStyles';
+import { useThemeColors } from '@/styles/commonStyles';
 
 export interface TabBarItem {
   name: string;
@@ -19,6 +20,8 @@ interface FloatingTabBarProps {
 export default function FloatingTabBar({ tabs }: FloatingTabBarProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
 
   const isActive = (route: string) => {
     if (route === '/(tabs)/(home)/') {
@@ -27,8 +30,10 @@ export default function FloatingTabBar({ tabs }: FloatingTabBarProps) {
     return pathname.includes(route);
   };
 
+  const styles = createStyles(colors);
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 16) }]}>
       <View style={styles.tabBar}>
         {tabs.map((tab) => {
           const active = isActive(tab.route);
@@ -56,13 +61,12 @@ export default function FloatingTabBar({ tabs }: FloatingTabBarProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.create({
   container: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 16,
     paddingHorizontal: 20,
     backgroundColor: 'transparent',
     pointerEvents: 'box-none',
@@ -73,7 +77,10 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     paddingVertical: 12,
     paddingHorizontal: 8,
-    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
     elevation: 8,
   },
   tab: {

@@ -2,14 +2,17 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HabitCard } from '@/components/HabitCard';
 import { IconSymbol } from '@/components/IconSymbol';
 import { useHabits } from '@/hooks/useHabits';
-import { colors } from '@/styles/commonStyles';
+import { useThemeColors } from '@/styles/commonStyles';
 import { getRandomQuote } from '@/utils/motivationalQuotes';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
   const { habits, loading, toggleHabitCompletion } = useHabits();
   const [quote] = useState(getRandomQuote());
 
@@ -18,11 +21,13 @@ export default function HomeScreen() {
   };
 
   const handleHabitPress = (habitId: string) => {
-    router.push(`/habit-detail?id=${habitId}`);
+    console.log('Habit pressed:', habitId);
   };
 
+  const styles = createStyles(colors);
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -89,7 +94,7 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -98,12 +103,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 120,
   },
   header: {
     marginBottom: 24,
+    marginTop: 16,
   },
   title: {
     fontSize: 32,
@@ -122,7 +127,10 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 3,
   },
   quoteText: {

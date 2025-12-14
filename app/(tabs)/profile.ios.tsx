@@ -1,14 +1,17 @@
 
 import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/IconSymbol';
 import { ProgressChart } from '@/components/ProgressChart';
 import { useHabits } from '@/hooks/useHabits';
-import { colors } from '@/styles/commonStyles';
+import { useThemeColors } from '@/styles/commonStyles';
 import { getHabitStats } from '@/utils/habitStats';
 import { getRandomQuote } from '@/utils/motivationalQuotes';
 
 export default function ProfileScreen() {
+  const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
   const { habits } = useHabits();
   const [quote] = useState(getRandomQuote());
 
@@ -29,8 +32,10 @@ export default function ProfileScreen() {
     ? Math.round(totalStats.avgCompletionRate / habits.length) 
     : 0;
 
+  const styles = createStyles(colors);
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -146,7 +151,7 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -155,12 +160,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 120,
   },
   header: {
     marginBottom: 24,
+    marginTop: 16,
   },
   title: {
     fontSize: 32,
@@ -178,7 +183,10 @@ const styles = StyleSheet.create({
     padding: 24,
     marginBottom: 24,
     alignItems: 'center',
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 3,
   },
   chartTitle: {
@@ -208,7 +216,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     minWidth: '45%',
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 3,
   },
   statValue: {
@@ -255,7 +266,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 3,
   },
   habitBreakdownHeader: {

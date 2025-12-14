@@ -8,11 +8,13 @@ import {
   StyleSheet,
   ScrollView,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/IconSymbol';
 import { useHabits } from '@/hooks/useHabits';
-import { colors } from '@/styles/commonStyles';
+import { useThemeColors } from '@/styles/commonStyles';
 
 const HABIT_ICONS = [
   { ios: 'drop.fill', android: 'water_drop', label: 'Water' },
@@ -25,38 +27,49 @@ const HABIT_ICONS = [
   { ios: 'pencil', android: 'edit', label: 'Write' },
 ];
 
-const HABIT_COLORS = [
-  colors.primary,
-  colors.secondary,
-  colors.accent,
-  '#9B59B6',
-  '#16A085',
-  '#E67E22',
-  '#3498DB',
-  '#E91E63',
-];
-
 export default function AddHabitModal() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
   const { addHabit } = useHabits();
   const [name, setName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState(HABIT_ICONS[0]);
-  const [selectedColor, setSelectedColor] = useState(HABIT_COLORS[0]);
+  const [selectedColor, setSelectedColor] = useState(colors.primary);
+
+  const HABIT_COLORS = [
+    colors.primary,
+    colors.secondary,
+    colors.accent,
+    '#9B59B6',
+    '#16A085',
+    '#E67E22',
+    '#3498DB',
+    '#E91E63',
+  ];
 
   const handleSave = async () => {
     if (name.trim()) {
-      await addHabit({
-        name: name.trim(),
-        icon: selectedIcon.android,
-        color: selectedColor,
-      });
-      router.back();
+      try {
+        await addHabit({
+          name: name.trim(),
+          icon: selectedIcon.android,
+          color: selectedColor,
+        });
+        router.back();
+      } catch (error) {
+        console.error('Error adding habit:', error);
+      }
     }
   };
 
+  const styles = createStyles(colors);
+
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <View style={[styles.header, { paddingTop: Platform.OS === 'android' ? 48 : insets.top + 16 }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
           <IconSymbol
             ios_icon_name="xmark"
@@ -69,7 +82,12 @@ export default function AddHabitModal() {
         <View style={styles.placeholder} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.section}>
           <Text style={styles.label}>Habit Name</Text>
           <TextInput
@@ -79,6 +97,7 @@ export default function AddHabitModal() {
             value={name}
             onChangeText={setName}
             autoFocus
+            returnKeyType="done"
           />
         </View>
 
@@ -123,7 +142,7 @@ export default function AddHabitModal() {
                     ios_icon_name="checkmark"
                     android_material_icon_name="check"
                     size={20}
-                    color={colors.card}
+                    color="#FFFFFF"
                   />
                 )}
               </TouchableOpacity>
@@ -139,11 +158,11 @@ export default function AddHabitModal() {
           <Text style={styles.saveButtonText}>Create Habit</Text>
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -153,7 +172,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'android' ? 48 : 60,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.textSecondary + '20',
@@ -171,7 +189,10 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: 20,
+    paddingBottom: 40,
   },
   section: {
     marginTop: 24,
@@ -233,7 +254,6 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     marginTop: 32,
-    marginBottom: 40,
   },
   saveButtonDisabled: {
     backgroundColor: colors.textSecondary,
@@ -242,6 +262,6 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.card,
+    color: '#FFFFFF',
   },
 });

@@ -9,8 +9,11 @@ export const habitStorage = {
     try {
       const habitsJson = await AsyncStorage.getItem(HABITS_KEY);
       if (habitsJson) {
-        return JSON.parse(habitsJson);
+        const habits = JSON.parse(habitsJson);
+        console.log('Loaded habits:', habits.length);
+        return habits;
       }
+      console.log('No habits found, returning empty array');
       return [];
     } catch (error) {
       console.error('Error loading habits:', error);
@@ -21,8 +24,10 @@ export const habitStorage = {
   async saveHabits(habits: Habit[]): Promise<void> {
     try {
       await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(habits));
+      console.log('Saved habits:', habits.length);
     } catch (error) {
       console.error('Error saving habits:', error);
+      throw error;
     }
   },
 
@@ -31,8 +36,10 @@ export const habitStorage = {
       const habits = await this.getHabits();
       habits.push(habit);
       await this.saveHabits(habits);
+      console.log('Added habit:', habit.name);
     } catch (error) {
       console.error('Error adding habit:', error);
+      throw error;
     }
   },
 
@@ -43,9 +50,13 @@ export const habitStorage = {
       if (index !== -1) {
         habits[index] = { ...habits[index], ...updates };
         await this.saveHabits(habits);
+        console.log('Updated habit:', habitId);
+      } else {
+        console.warn('Habit not found for update:', habitId);
       }
     } catch (error) {
       console.error('Error updating habit:', error);
+      throw error;
     }
   },
 
@@ -54,8 +65,10 @@ export const habitStorage = {
       const habits = await this.getHabits();
       const filtered = habits.filter(h => h.id !== habitId);
       await this.saveHabits(filtered);
+      console.log('Deleted habit:', habitId);
     } catch (error) {
       console.error('Error deleting habit:', error);
+      throw error;
     }
   },
 
@@ -67,13 +80,28 @@ export const habitStorage = {
         const dateIndex = habit.completedDates.indexOf(date);
         if (dateIndex > -1) {
           habit.completedDates.splice(dateIndex, 1);
+          console.log('Uncompleted habit:', habit.name, 'on', date);
         } else {
           habit.completedDates.push(date);
+          console.log('Completed habit:', habit.name, 'on', date);
         }
         await this.saveHabits(habits);
+      } else {
+        console.warn('Habit not found for toggle:', habitId);
       }
     } catch (error) {
       console.error('Error toggling habit completion:', error);
+      throw error;
+    }
+  },
+
+  async clearAllHabits(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(HABITS_KEY);
+      console.log('Cleared all habits');
+    } catch (error) {
+      console.error('Error clearing habits:', error);
+      throw error;
     }
   },
 };

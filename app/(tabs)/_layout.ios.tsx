@@ -1,17 +1,28 @@
+
 import React from 'react';
-import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
+import { NativeTabs } from 'expo-router/unstable-native-tabs';
 
 export default function TabLayout() {
   return (
     <NativeTabs>
-      <NativeTabs.Trigger key="home" name="(home)">
-        <Icon sf="house.fill" />
-        <Label>Home</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger key="profile" name="profile">
-        <Icon sf="person.fill" />
-        <Label>Profile</Label>
-      </NativeTabs.Trigger>
+      <NativeTabs.Screen
+        name="(home)"
+        options={{
+          title: 'Home',
+          tabBarIcon: ({ focused }) => ({
+            sfSymbol: focused ? 'house.fill' : 'house',
+          }),
+        }}
+      />
+      <NativeTabs.Screen
+        name="profile"
+        options={{
+          title: 'Progress',
+          tabBarIcon: ({ focused }) => ({
+            sfSymbol: focused ? 'chart.bar.fill' : 'chart.bar',
+          }),
+        }}
+      />
     </NativeTabs>
   );
 }
