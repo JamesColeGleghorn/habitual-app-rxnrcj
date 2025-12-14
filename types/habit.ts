@@ -8,6 +8,7 @@ export interface Habit {
   completedDates: string[];
   createdAt?: string;
   dates?: { [date: string]: boolean };
+  customImage?: string; // URI to custom image
 }
 
 export interface HabitCompletion {

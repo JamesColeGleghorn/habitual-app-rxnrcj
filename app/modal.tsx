@@ -9,20 +9,23 @@ import {
   ScrollView,
   Platform,
   KeyboardAvoidingView,
+  Image,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
 import { IconSymbol } from '@/components/IconSymbol';
 import { useHabits } from '@/hooks/useHabits';
 import { useThemeColors } from '@/styles/commonStyles';
 
 const HABIT_ICONS = [
-  { ios: 'drop.fill', android: 'water_drop', label: 'Water' },
-  { ios: 'figure.walk', android: 'directions_walk', label: 'Walk' },
-  { ios: 'book.fill', android: 'menu_book', label: 'Read' },
+  { ios: 'waterbottle.fill', android: 'water_drop', label: 'Water' },
+  { ios: 'figure.run', android: 'directions_run', label: 'Run' },
+  { ios: 'book.pages.fill', android: 'menu_book', label: 'Read' },
   { ios: 'bed.double.fill', android: 'bed', label: 'Sleep' },
   { ios: 'dumbbell.fill', android: 'fitness_center', label: 'Exercise' },
-  { ios: 'leaf.fill', android: 'eco', label: 'Meditate' },
+  { ios: 'leaf.fill', android: 'spa', label: 'Meditate' },
   { ios: 'fork.knife', android: 'restaurant', label: 'Eat Healthy' },
   { ios: 'pencil', android: 'edit', label: 'Write' },
 ];
@@ -35,6 +38,7 @@ export default function AddHabitModal() {
   const [name, setName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState(HABIT_ICONS[0]);
   const [selectedColor, setSelectedColor] = useState(colors.primary);
+  const [customImage, setCustomImage] = useState<string | null>(null);
 
   const HABIT_COLORS = [
     colors.primary,
@@ -47,6 +51,36 @@ export default function AddHabitModal() {
     '#E91E63',
   ];
 
+  const pickImage = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (permissionResult.granted === false) {
+        Alert.alert('Permission Required', 'Please allow access to your photo library to upload a custom image.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setCustomImage(result.assets[0].uri);
+        console.log('Custom image selected:', result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image. Please try again.');
+    }
+  };
+
+  const removeCustomImage = () => {
+    setCustomImage(null);
+  };
+
   const handleSave = async () => {
     if (name.trim()) {
       try {
@@ -54,10 +88,12 @@ export default function AddHabitModal() {
           name: name.trim(),
           icon: selectedIcon.android,
           color: selectedColor,
+          customImage: customImage || undefined,
         });
         router.back();
       } catch (error) {
         console.error('Error adding habit:', error);
+        Alert.alert('Error', 'Failed to create habit. Please try again.');
       }
     }
   };
@@ -102,53 +138,101 @@ export default function AddHabitModal() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Choose Icon</Text>
-          <View style={styles.iconGrid}>
-            {HABIT_ICONS.map((icon, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.iconOption,
-                  selectedIcon.android === icon.android && styles.iconOptionSelected,
-                ]}
-                onPress={() => setSelectedIcon(icon)}
+          <Text style={styles.label}>Custom Photo (Optional)</Text>
+          <Text style={styles.helperText}>
+            Upload a custom photo or use default icons below
+          </Text>
+          
+          {customImage ? (
+            <View style={styles.customImageContainer}>
+              <Image 
+                source={{ uri: customImage }} 
+                style={styles.customImagePreview}
+                resizeMode="cover"
+              />
+              <TouchableOpacity 
+                style={styles.removeImageButton}
+                onPress={removeCustomImage}
               >
                 <IconSymbol
-                  ios_icon_name={icon.ios}
-                  android_material_icon_name={icon.android}
+                  ios_icon_name="xmark.circle.fill"
+                  android_material_icon_name="cancel"
                   size={28}
-                  color={selectedIcon.android === icon.android ? colors.primary : colors.text}
+                  color={colors.text}
                 />
               </TouchableOpacity>
-            ))}
-          </View>
+            </View>
+          ) : (
+            <TouchableOpacity 
+              style={styles.uploadButton}
+              onPress={pickImage}
+            >
+              <IconSymbol
+                ios_icon_name="photo.badge.plus"
+                android_material_icon_name="add_photo_alternate"
+                size={32}
+                color={colors.primary}
+              />
+              <Text style={styles.uploadButtonText}>Upload Custom Photo</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.label}>Choose Color</Text>
-          <View style={styles.colorGrid}>
-            {HABIT_COLORS.map((color, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.colorOption,
-                  { backgroundColor: color },
-                  selectedColor === color && styles.colorOptionSelected,
-                ]}
-                onPress={() => setSelectedColor(color)}
-              >
-                {selectedColor === color && (
-                  <IconSymbol
-                    ios_icon_name="checkmark"
-                    android_material_icon_name="check"
-                    size={20}
-                    color="#FFFFFF"
-                  />
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+        {!customImage && (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.label}>Choose Icon</Text>
+              <Text style={styles.helperText}>
+                Default icons will be used based on habit name
+              </Text>
+              <View style={styles.iconGrid}>
+                {HABIT_ICONS.map((icon, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.iconOption,
+                      selectedIcon.android === icon.android && styles.iconOptionSelected,
+                    ]}
+                    onPress={() => setSelectedIcon(icon)}
+                  >
+                    <IconSymbol
+                      ios_icon_name={icon.ios}
+                      android_material_icon_name={icon.android}
+                      size={28}
+                      color={selectedIcon.android === icon.android ? colors.primary : colors.text}
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.label}>Choose Color</Text>
+              <View style={styles.colorGrid}>
+                {HABIT_COLORS.map((color, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.colorOption,
+                      { backgroundColor: color },
+                      selectedColor === color && styles.colorOptionSelected,
+                    ]}
+                    onPress={() => setSelectedColor(color)}
+                  >
+                    {selectedColor === color && (
+                      <IconSymbol
+                        ios_icon_name="checkmark"
+                        android_material_icon_name="check"
+                        size={20}
+                        color="#FFFFFF"
+                      />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </>
+        )}
 
         <TouchableOpacity
           style={[styles.saveButton, !name.trim() && styles.saveButtonDisabled]}
@@ -201,6 +285,11 @@ const createStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.c
     fontSize: 16,
     fontWeight: '600',
     color: colors.text,
+    marginBottom: 8,
+  },
+  helperText: {
+    fontSize: 13,
+    color: colors.textSecondary,
     marginBottom: 12,
   },
   input: {
@@ -211,6 +300,39 @@ const createStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.c
     color: colors.text,
     borderWidth: 1,
     borderColor: colors.textSecondary + '20',
+  },
+  uploadButton: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.primary + '40',
+    borderStyle: 'dashed',
+  },
+  uploadButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
+    marginTop: 8,
+  },
+  customImageContainer: {
+    position: 'relative',
+    alignSelf: 'center',
+  },
+  customImagePreview: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: colors.card,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: colors.card,
+    borderRadius: 14,
   },
   iconGrid: {
     flexDirection: 'row',

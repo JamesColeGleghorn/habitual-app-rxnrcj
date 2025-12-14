@@ -1,10 +1,11 @@
 
 import React, { memo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Image } from 'react-native';
 import { IconSymbol } from '@/components/IconSymbol';
 import { Habit } from '@/types/habit';
 import { useThemeColors } from '@/styles/commonStyles';
 import { isCompletedToday, getHabitStats } from '@/utils/habitStats';
+import { getDefaultIconForHabit } from '@/utils/habitIcons';
 
 interface HabitCardProps {
   habit: Habit;
@@ -35,6 +36,8 @@ function HabitCardComponent({ habit, onToggle, onPress }: HabitCardProps) {
       bounciness: 4,
     }).start();
   };
+
+  const defaultIcon = getDefaultIconForHabit(habit.name);
 
   const styles = createStyles(colors);
 
@@ -92,12 +95,27 @@ function HabitCardComponent({ habit, onToggle, onPress }: HabitCardProps) {
           </View>
 
           <View style={[styles.iconContainer, { backgroundColor: habit.color + '20' }]}>
-            <IconSymbol
-              ios_icon_name={habit.icon}
-              android_material_icon_name={habit.icon}
-              size={24}
-              color={habit.color}
-            />
+            {habit.customImage ? (
+              <Image 
+                source={{ uri: habit.customImage }} 
+                style={styles.customImage}
+                resizeMode="cover"
+              />
+            ) : defaultIcon ? (
+              <IconSymbol
+                ios_icon_name={defaultIcon.ios}
+                android_material_icon_name={defaultIcon.android}
+                size={24}
+                color={habit.color}
+              />
+            ) : (
+              <IconSymbol
+                ios_icon_name={habit.icon}
+                android_material_icon_name={habit.icon}
+                size={24}
+                color={habit.color}
+              />
+            )}
           </View>
         </View>
       </TouchableOpacity>
@@ -166,5 +184,11 @@ const createStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.c
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  customImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
 });

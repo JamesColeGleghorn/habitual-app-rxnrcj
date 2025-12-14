@@ -113,7 +113,7 @@ export const habitStorage = {
           {
             id: '1',
             name: 'Drink Water',
-            icon: '💧',
+            icon: 'water_drop',
             color: '#4A90E2',
             dates: {},
             completedDates: [],
@@ -121,7 +121,7 @@ export const habitStorage = {
           {
             id: '2',
             name: 'Exercise',
-            icon: '🏃',
+            icon: 'fitness_center',
             color: '#29ABE2',
             dates: {},
             completedDates: [],
@@ -129,7 +129,7 @@ export const habitStorage = {
           {
             id: '3',
             name: 'Read',
-            icon: '📚',
+            icon: 'menu_book',
             color: '#F2BE22',
             dates: {},
             completedDates: [],
