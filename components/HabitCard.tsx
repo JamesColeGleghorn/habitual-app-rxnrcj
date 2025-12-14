@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { memo } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { IconSymbol } from '@/components/IconSymbol';
 import { Habit } from '@/types/habit';
 import { useThemeColors } from '@/styles/commonStyles';
@@ -12,73 +12,100 @@ interface HabitCardProps {
   onPress: () => void;
 }
 
-export function HabitCard({ habit, onToggle, onPress }: HabitCardProps) {
+function HabitCardComponent({ habit, onToggle, onPress }: HabitCardProps) {
   const colors = useThemeColors();
   const completed = isCompletedToday(habit);
   const stats = getHabitStats(habit);
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.97,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
+    }).start();
+  };
 
   const styles = createStyles(colors);
 
   return (
-    <TouchableOpacity 
-      style={styles.card} 
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      <View style={styles.content}>
-        <View style={styles.leftSection}>
-          <TouchableOpacity
-            style={[
-              styles.checkbox,
-              completed && { backgroundColor: colors.primary, borderColor: colors.primary }
-            ]}
-            onPress={(e) => {
-              e.stopPropagation();
-              onToggle();
-            }}
-            activeOpacity={0.7}
-          >
-            {completed && (
-              <IconSymbol
-                ios_icon_name="checkmark"
-                android_material_icon_name="check"
-                size={20}
-                color={colors.card}
-              />
-            )}
-          </TouchableOpacity>
-          
-          <View style={styles.habitInfo}>
-            <Text style={styles.habitName}>{habit.name}</Text>
-            <View style={styles.streakContainer}>
-              <IconSymbol
-                ios_icon_name="flame.fill"
-                android_material_icon_name="local_fire_department"
-                size={16}
-                color={stats.currentStreak > 0 ? colors.secondary : colors.textSecondary}
-              />
-              <Text style={[
-                styles.streakText,
-                stats.currentStreak > 0 && { color: colors.secondary }
-              ]}>
-                {stats.currentStreak} day streak
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <TouchableOpacity 
+        style={styles.card} 
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={0.9}
+      >
+        <View style={styles.content}>
+          <View style={styles.leftSection}>
+            <TouchableOpacity
+              style={[
+                styles.checkbox,
+                completed && { backgroundColor: colors.primary, borderColor: colors.primary }
+              ]}
+              onPress={(e) => {
+                e.stopPropagation();
+                onToggle();
+              }}
+              activeOpacity={0.7}
+            >
+              {completed && (
+                <IconSymbol
+                  ios_icon_name="checkmark"
+                  android_material_icon_name="check"
+                  size={20}
+                  color={colors.card}
+                />
+              )}
+            </TouchableOpacity>
+            
+            <View style={styles.habitInfo}>
+              <Text style={[styles.habitName, completed && styles.habitNameCompleted]}>
+                {habit.name}
               </Text>
+              <View style={styles.streakContainer}>
+                <IconSymbol
+                  ios_icon_name="flame.fill"
+                  android_material_icon_name="local_fire_department"
+                  size={16}
+                  color={stats.currentStreak > 0 ? colors.secondary : colors.textSecondary}
+                />
+                <Text style={[
+                  styles.streakText,
+                  stats.currentStreak > 0 && { color: colors.secondary, fontWeight: '600' }
+                ]}>
+                  {stats.currentStreak} day{stats.currentStreak !== 1 ? 's' : ''} streak
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
 
-        <View style={styles.iconContainer}>
-          <IconSymbol
-            ios_icon_name={habit.icon}
-            android_material_icon_name={habit.icon}
-            size={24}
-            color={habit.color}
-          />
+          <View style={[styles.iconContainer, { backgroundColor: habit.color + '20' }]}>
+            <IconSymbol
+              ios_icon_name={habit.icon}
+              android_material_icon_name={habit.icon}
+              size={24}
+              color={habit.color}
+            />
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
+
+export const HabitCard = memo(HabitCardComponent);
 
 const createStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.create({
   card: {
@@ -121,6 +148,9 @@ const createStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.c
     color: colors.text,
     marginBottom: 4,
   },
+  habitNameCompleted: {
+    opacity: 0.7,
+  },
   streakContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -134,7 +164,6 @@ const createStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.c
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },

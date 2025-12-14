@@ -3,18 +3,22 @@ import { useState, useEffect, useCallback } from 'react';
 import { Habit } from '@/types/habit';
 import { habitStorage } from '@/utils/habitStorage';
 import { getTodayDateString } from '@/utils/habitStats';
+import * as Haptics from 'expo-haptics';
 
 export function useHabits() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const loadHabits = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const loadedHabits = await habitStorage.getHabits();
       setHabits(loadedHabits);
-    } catch (error) {
-      console.error('Error in loadHabits:', error);
+    } catch (err) {
+      console.error('Error in loadHabits:', err);
+      setError('Failed to load habits. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -28,15 +32,17 @@ export function useHabits() {
     try {
       const newHabit: Habit = {
         ...habit,
-        id: Date.now().toString(),
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         completedDates: [],
         createdAt: new Date().toISOString(),
       };
       await habitStorage.addHabit(newHabit);
       await loadHabits();
-    } catch (error) {
-      console.error('Error in addHabit:', error);
-      throw error;
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (err) {
+      console.error('Error in addHabit:', err);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      throw new Error('Failed to add habit. Please try again.');
     }
   }, [loadHabits]);
 
@@ -44,9 +50,10 @@ export function useHabits() {
     try {
       await habitStorage.updateHabit(habitId, updates);
       await loadHabits();
-    } catch (error) {
-      console.error('Error in updateHabit:', error);
-      throw error;
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch (err) {
+      console.error('Error in updateHabit:', err);
+      throw new Error('Failed to update habit. Please try again.');
     }
   }, [loadHabits]);
 
@@ -54,9 +61,10 @@ export function useHabits() {
     try {
       await habitStorage.deleteHabit(habitId);
       await loadHabits();
-    } catch (error) {
-      console.error('Error in deleteHabit:', error);
-      throw error;
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (err) {
+      console.error('Error in deleteHabit:', err);
+      throw new Error('Failed to delete habit. Please try again.');
     }
   }, [loadHabits]);
 
@@ -64,16 +72,28 @@ export function useHabits() {
     try {
       const today = getTodayDateString();
       await habitStorage.toggleHabitCompletion(habitId, today);
+      
+      const habit = habits.find(h => h.id === habitId);
+      const isCompleting = habit && !habit.completedDates.includes(today);
+      
+      if (isCompleting) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } else {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+      
       await loadHabits();
-    } catch (error) {
-      console.error('Error in toggleHabitCompletion:', error);
-      throw error;
+    } catch (err) {
+      console.error('Error in toggleHabitCompletion:', err);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      throw new Error('Failed to toggle habit. Please try again.');
     }
-  }, [loadHabits]);
+  }, [loadHabits, habits]);
 
   return {
     habits,
     loading,
+    error,
     addHabit,
     updateHabit,
     deleteHabit,

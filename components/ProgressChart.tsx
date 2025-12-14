@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Platform, Animated } from 'react-native';
 import { useThemeColors } from '@/styles/commonStyles';
 
 interface ProgressChartProps {
@@ -13,12 +13,22 @@ export function ProgressChart({ percentage, size = 120, strokeWidth = 12 }: Prog
   const colors = useThemeColors();
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const progress = (percentage / 100) * circumference;
-  const dashOffset = circumference - progress;
+  const animatedValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(animatedValue, {
+      toValue: percentage,
+      duration: 1000,
+      useNativeDriver: false,
+    }).start();
+  }, [percentage, animatedValue]);
 
   const styles = createStyles(colors, size);
 
   if (Platform.OS === 'web') {
+    const progress = (percentage / 100) * circumference;
+    const dashOffset = circumference - progress;
+
     return (
       <View style={[styles.container, { width: size, height: size }]}>
         <svg width={size} height={size} style={{ position: 'absolute' }}>
@@ -26,7 +36,7 @@ export function ProgressChart({ percentage, size = 120, strokeWidth = 12 }: Prog
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke={colors.background}
+            stroke={colors.textSecondary + '20'}
             strokeWidth={strokeWidth}
             fill="none"
           />
@@ -45,6 +55,7 @@ export function ProgressChart({ percentage, size = 120, strokeWidth = 12 }: Prog
         </svg>
         <View style={styles.textContainer}>
           <Text style={styles.percentageText}>{Math.round(percentage)}%</Text>
+          <Text style={styles.labelText}>Complete</Text>
         </View>
       </View>
     );
@@ -57,11 +68,9 @@ export function ProgressChart({ percentage, size = 120, strokeWidth = 12 }: Prog
     borderWidth: strokeWidth,
   };
 
-  const progressAngle = (percentage / 100) * 360;
-
   return (
     <View style={[styles.container, { width: size, height: size }]}>
-      <View style={[circleStyle, { borderColor: colors.background }]} />
+      <View style={[circleStyle, { borderColor: colors.textSecondary + '20' }]} />
       <View 
         style={[
           circleStyle, 
@@ -78,6 +87,7 @@ export function ProgressChart({ percentage, size = 120, strokeWidth = 12 }: Prog
       />
       <View style={styles.textContainer}>
         <Text style={styles.percentageText}>{Math.round(percentage)}%</Text>
+        <Text style={styles.labelText}>Complete</Text>
       </View>
     </View>
   );
@@ -95,8 +105,14 @@ const createStyles = (colors: ReturnType<typeof useThemeColors>, size: number) =
     justifyContent: 'center',
   },
   percentageText: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '800',
     color: colors.text,
+  },
+  labelText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: colors.textSecondary,
+    marginTop: 4,
   },
 });
