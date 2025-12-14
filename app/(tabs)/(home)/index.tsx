@@ -1,22 +1,90 @@
-import React from "react";
-import { FlatList, StyleSheet, View } from "react-native";
-import { useTheme } from "@react-navigation/native";
-import { modalDemos } from "@/components/homeData";
-import { DemoCard } from "@/components/DemoCard";
+
+import React, { useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { useRouter } from 'expo-router';
+import { HabitCard } from '@/components/HabitCard';
+import { IconSymbol } from '@/components/IconSymbol';
+import { useHabits } from '@/hooks/useHabits';
+import { colors } from '@/styles/commonStyles';
+import { getRandomQuote } from '@/utils/motivationalQuotes';
 
 export default function HomeScreen() {
-  const theme = useTheme();
+  const router = useRouter();
+  const { habits, loading, toggleHabitCompletion } = useHabits();
+  const [quote] = useState(getRandomQuote());
+
+  const handleAddHabit = () => {
+    router.push('/modal');
+  };
+
+  const handleHabitPress = (habitId: string) => {
+    router.push(`/habit-detail?id=${habitId}`);
+  };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <FlatList
-        data={modalDemos}
-        renderItem={({ item }) => <DemoCard item={item} />}
-        keyExtractor={(item) => item.route}
-        contentContainerStyle={styles.listContainer}
-        contentInsetAdjustmentBehavior="automatic"
+    <View style={styles.container}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-      />
+      >
+        <View style={styles.header}>
+          <Text style={styles.title}>Habit Streak</Text>
+          <Text style={styles.subtitle}>Build better habits, one day at a time</Text>
+        </View>
+
+        <View style={styles.quoteCard}>
+          <IconSymbol
+            ios_icon_name="quote.bubble.fill"
+            android_material_icon_name="format_quote"
+            size={24}
+            color={colors.primary}
+          />
+          <Text style={styles.quoteText}>{quote}</Text>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Today&apos;s Habits</Text>
+            <TouchableOpacity onPress={handleAddHabit} style={styles.addButton}>
+              <IconSymbol
+                ios_icon_name="plus.circle.fill"
+                android_material_icon_name="add_circle"
+                size={28}
+                color={colors.primary}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {loading ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>Loading habits...</Text>
+            </View>
+          ) : habits.length === 0 ? (
+            <View style={styles.emptyState}>
+              <IconSymbol
+                ios_icon_name="sparkles"
+                android_material_icon_name="auto_awesome"
+                size={48}
+                color={colors.textSecondary}
+              />
+              <Text style={styles.emptyText}>No habits yet</Text>
+              <Text style={styles.emptySubtext}>Tap the + button to create your first habit</Text>
+            </View>
+          ) : (
+            <View style={styles.habitsList}>
+              {habits.map((habit) => (
+                <HabitCard
+                  key={habit.id}
+                  habit={habit}
+                  onToggle={() => toggleHabitCompletion(habit.id)}
+                  onPress={() => handleHabitPress(habit.id)}
+                />
+              ))}
+            </View>
+          )}
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -24,10 +92,82 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
-  listContainer: {
-    paddingTop: 48,
-    paddingHorizontal: 16,
-    paddingBottom: 100, // Extra padding for floating tab bar
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingTop: Platform.OS === 'android' ? 48 : 60,
+    paddingHorizontal: 20,
+    paddingBottom: 120,
+  },
+  header: {
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: colors.textSecondary,
+  },
+  quoteCard: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
+    elevation: 3,
+  },
+  quoteText: {
+    flex: 1,
+    fontSize: 15,
+    fontStyle: 'italic',
+    color: colors.text,
+    marginLeft: 12,
+    lineHeight: 22,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  addButton: {
+    padding: 4,
+  },
+  habitsList: {
+    gap: 8,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginTop: 16,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 8,
+    textAlign: 'center',
   },
 });

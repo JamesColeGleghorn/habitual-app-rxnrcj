@@ -1,91 +1,297 @@
-import React from "react";
-import { View, Text, StyleSheet, ScrollView, Platform } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { IconSymbol } from "@/components/IconSymbol";
-import { GlassView } from "expo-glass-effect";
-import { useTheme } from "@react-navigation/native";
+
+import React, { useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, Platform } from 'react-native';
+import { IconSymbol } from '@/components/IconSymbol';
+import { ProgressChart } from '@/components/ProgressChart';
+import { useHabits } from '@/hooks/useHabits';
+import { colors } from '@/styles/commonStyles';
+import { getHabitStats } from '@/utils/habitStats';
+import { getRandomQuote } from '@/utils/motivationalQuotes';
 
 export default function ProfileScreen() {
-  const theme = useTheme();
+  const { habits } = useHabits();
+  const [quote] = useState(getRandomQuote());
+
+  const totalStats = habits.reduce(
+    (acc, habit) => {
+      const stats = getHabitStats(habit);
+      return {
+        totalCompleted: acc.totalCompleted + stats.totalCompleted,
+        totalCurrentStreak: acc.totalCurrentStreak + stats.currentStreak,
+        totalLongestStreak: Math.max(acc.totalLongestStreak, stats.longestStreak),
+        avgCompletionRate: acc.avgCompletionRate + stats.completionRate,
+      };
+    },
+    { totalCompleted: 0, totalCurrentStreak: 0, totalLongestStreak: 0, avgCompletionRate: 0 }
+  );
+
+  const avgCompletionRate = habits.length > 0 
+    ? Math.round(totalStats.avgCompletionRate / habits.length) 
+    : 0;
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]} edges={['top']}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={[
-          styles.contentContainer,
-          Platform.OS !== 'ios' && styles.contentContainerWithTabBar
-        ]}
+    <View style={styles.container}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
       >
-        <GlassView style={[
-          styles.profileHeader,
-          Platform.OS !== 'ios' && { backgroundColor: theme.dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }
-        ]} glassEffectStyle="regular">
-          <IconSymbol ios_icon_name="person.circle.fill" android_material_icon_name="person" size={80} color={theme.colors.primary} />
-          <Text style={[styles.name, { color: theme.colors.text }]}>John Doe</Text>
-          <Text style={[styles.email, { color: theme.dark ? '#98989D' : '#666' }]}>john.doe@example.com</Text>
-        </GlassView>
+        <View style={styles.header}>
+          <Text style={styles.title}>Progress & Stats</Text>
+          <Text style={styles.subtitle}>Track your journey to better habits</Text>
+        </View>
 
-        <GlassView style={[
-          styles.section,
-          Platform.OS !== 'ios' && { backgroundColor: theme.dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }
-        ]} glassEffectStyle="regular">
-          <View style={styles.infoRow}>
-            <IconSymbol ios_icon_name="phone.fill" android_material_icon_name="phone" size={20} color={theme.dark ? '#98989D' : '#666'} />
-            <Text style={[styles.infoText, { color: theme.colors.text }]}>+1 (555) 123-4567</Text>
+        <View style={styles.chartCard}>
+          <Text style={styles.chartTitle}>Overall Completion Rate</Text>
+          <View style={styles.chartContainer}>
+            <ProgressChart percentage={avgCompletionRate} />
           </View>
-          <View style={styles.infoRow}>
-            <IconSymbol ios_icon_name="location.fill" android_material_icon_name="location-on" size={20} color={theme.dark ? '#98989D' : '#666'} />
-            <Text style={[styles.infoText, { color: theme.colors.text }]}>San Francisco, CA</Text>
+          <Text style={styles.chartSubtext}>
+            Keep up the great work!
+          </Text>
+        </View>
+
+        <View style={styles.statsGrid}>
+          <View style={styles.statCard}>
+            <IconSymbol
+              ios_icon_name="checkmark.circle.fill"
+              android_material_icon_name="check_circle"
+              size={32}
+              color={colors.primary}
+            />
+            <Text style={styles.statValue}>{totalStats.totalCompleted}</Text>
+            <Text style={styles.statLabel}>Total Completed</Text>
           </View>
-        </GlassView>
+
+          <View style={styles.statCard}>
+            <IconSymbol
+              ios_icon_name="flame.fill"
+              android_material_icon_name="local_fire_department"
+              size={32}
+              color={colors.secondary}
+            />
+            <Text style={styles.statValue}>{totalStats.totalCurrentStreak}</Text>
+            <Text style={styles.statLabel}>Active Streaks</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <IconSymbol
+              ios_icon_name="star.fill"
+              android_material_icon_name="star"
+              size={32}
+              color={colors.accent}
+            />
+            <Text style={styles.statValue}>{totalStats.totalLongestStreak}</Text>
+            <Text style={styles.statLabel}>Longest Streak</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <IconSymbol
+              ios_icon_name="list.bullet"
+              android_material_icon_name="list"
+              size={32}
+              color={colors.primary}
+            />
+            <Text style={styles.statValue}>{habits.length}</Text>
+            <Text style={styles.statLabel}>Total Habits</Text>
+          </View>
+        </View>
+
+        <View style={styles.motivationCard}>
+          <Text style={styles.motivationTitle}>Daily Motivation</Text>
+          <Text style={styles.motivationText}>{quote}</Text>
+        </View>
+
+        <View style={styles.habitsBreakdown}>
+          <Text style={styles.breakdownTitle}>Habits Breakdown</Text>
+          {habits.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>No habits to display</Text>
+            </View>
+          ) : (
+            habits.map((habit) => {
+              const stats = getHabitStats(habit);
+              return (
+                <View key={habit.id} style={styles.habitBreakdownCard}>
+                  <View style={styles.habitBreakdownHeader}>
+                    <IconSymbol
+                      ios_icon_name={habit.icon}
+                      android_material_icon_name={habit.icon}
+                      size={24}
+                      color={habit.color}
+                    />
+                    <Text style={styles.habitBreakdownName}>{habit.name}</Text>
+                  </View>
+                  <View style={styles.habitBreakdownStats}>
+                    <View style={styles.habitBreakdownStat}>
+                      <Text style={styles.habitBreakdownValue}>{stats.currentStreak}</Text>
+                      <Text style={styles.habitBreakdownLabel}>Current</Text>
+                    </View>
+                    <View style={styles.habitBreakdownStat}>
+                      <Text style={styles.habitBreakdownValue}>{stats.longestStreak}</Text>
+                      <Text style={styles.habitBreakdownLabel}>Longest</Text>
+                    </View>
+                    <View style={styles.habitBreakdownStat}>
+                      <Text style={styles.habitBreakdownValue}>{stats.completionRate}%</Text>
+                      <Text style={styles.habitBreakdownLabel}>Rate</Text>
+                    </View>
+                  </View>
+                </View>
+              );
+            })
+          )}
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    // backgroundColor handled dynamically
-  },
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
-  contentContainer: {
-    padding: 20,
+  scrollView: {
+    flex: 1,
   },
-  contentContainerWithTabBar: {
-    paddingBottom: 100, // Extra padding for floating tab bar
+  scrollContent: {
+    paddingTop: Platform.OS === 'android' ? 48 : 60,
+    paddingHorizontal: 20,
+    paddingBottom: 120,
   },
-  profileHeader: {
-    alignItems: 'center',
-    borderRadius: 12,
-    padding: 32,
-    marginBottom: 16,
-    gap: 12,
+  header: {
+    marginBottom: 24,
   },
-  name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    // color handled dynamically
+  title: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: 8,
   },
-  email: {
+  subtitle: {
     fontSize: 16,
-    // color handled dynamically
+    color: colors.textSecondary,
   },
-  section: {
-    borderRadius: 12,
-    padding: 20,
+  chartCard: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 24,
+    alignItems: 'center',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
+    elevation: 3,
+  },
+  chartTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 20,
+  },
+  chartContainer: {
+    marginVertical: 16,
+  },
+  chartSubtext: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 12,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
+    marginBottom: 24,
   },
-  infoRow: {
+  statCard: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    flex: 1,
+    minWidth: '45%',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
+    elevation: 3,
+  },
+  statValue: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.text,
+    marginTop: 12,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  motivationCard: {
+    backgroundColor: colors.highlight,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+  },
+  motivationTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 12,
+  },
+  motivationText: {
+    fontSize: 15,
+    fontStyle: 'italic',
+    color: colors.text,
+    lineHeight: 22,
+  },
+  habitsBreakdown: {
+    marginBottom: 24,
+  },
+  breakdownTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 16,
+  },
+  habitBreakdownCard: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
+    elevation: 3,
+  },
+  habitBreakdownHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    marginBottom: 12,
   },
-  infoText: {
+  habitBreakdownName: {
     fontSize: 16,
-    // color handled dynamically
+    fontWeight: '600',
+    color: colors.text,
+    marginLeft: 12,
+  },
+  habitBreakdownStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  habitBreakdownStat: {
+    alignItems: 'center',
+  },
+  habitBreakdownValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  habitBreakdownLabel: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: colors.textSecondary,
   },
 });
