@@ -20,4 +20,14 @@ config.resolver.sourceExts = [
   ...config.resolver.sourceExts,
 ];
 
+// Explicitly ignore problematic directories
+config.resolver.blockList = [
+  /babel-plugins\/.*/,
+  /node_modules\/.*\/babel-plugins\/.*/,
+];
+
+// Configure watchman to ignore certain patterns
+config.watchFolders = [__dirname];
+config.resolver.unstable_enablePackageExports = true;
+
 module.exports = config;

@@ -29,12 +29,15 @@
     "**/*.tsx",
     "**/*.ios.ts",
     "**/*.ios.tsx",
+    "**/*.android.ts",
+    "**/*.android.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ],
   "exclude": [
     "node_modules",
     "babel.config.js",
-    "metro.config.js"
+    "metro.config.js",
+    "babel-plugins"
   ]
 }

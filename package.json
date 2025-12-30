@@ -6,14 +6,15 @@
   "scripts": {
     "start": "EXPO_NO_TELEMETRY=1 expo start",
     "dev": "EXPO_NO_TELEMETRY=1 expo start --clear",
-    "ios": "EXPO_NO_TELEMETRY=1 expo start --ios",
-    "ios:device": "EXPO_NO_TELEMETRY=1 expo start --ios --device",
+    "ios": "EXPO_NO_TELEMETRY=1 expo start --ios --clear",
+    "ios:device": "EXPO_NO_TELEMETRY=1 expo start --ios --device --clear",
     "prebuild:ios": "expo prebuild -p ios --clean",
     "build:ios:dev": "eas build --platform ios --profile development",
     "build:ios:preview": "eas build --platform ios --profile preview",
     "build:ios:prod": "eas build --platform ios --profile production",
     "submit:ios": "eas submit -p ios",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "clean": "rm -rf node_modules .expo .metro-health-check* && npm install"
   },
   "dependencies": {
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
