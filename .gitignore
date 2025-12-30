@@ -41,3 +41,6 @@ package-lock.json
 
 # Ignore babel-plugins directory if it exists
 babel-plugins/
+
+# Metro bundler cache
+.metro/

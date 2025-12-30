@@ -14,7 +14,7 @@
     "build:ios:prod": "eas build --platform ios --profile production",
     "submit:ios": "eas submit -p ios",
     "lint": "eslint .",
-    "clean": "rm -rf node_modules .expo .metro-health-check* && npm install"
+    "clean": "rm -rf node_modules .expo .metro .metro-health-check* && npm install"
   },
   "dependencies": {
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",

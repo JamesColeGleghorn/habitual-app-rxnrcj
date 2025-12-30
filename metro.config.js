@@ -1,5 +1,6 @@
 
 const { getDefaultConfig } = require('expo/metro-config');
+const path = require('path');
 
 const config = getDefaultConfig(__dirname);
 
@@ -28,6 +29,11 @@ config.resolver.blockList = [
 
 // Configure watchman to ignore certain patterns
 config.watchFolders = [__dirname];
+
+// Enable package exports for better module resolution
 config.resolver.unstable_enablePackageExports = true;
+
+// Ensure proper asset resolution
+config.resolver.assetExts = config.resolver.assetExts || [];
 
 module.exports = config;
