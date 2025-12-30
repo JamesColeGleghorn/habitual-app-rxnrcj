@@ -1,12 +1,17 @@
+
 const { getDefaultConfig } = require('expo/metro-config');
-const { FileStore } = require('metro-cache');
-const path = require('path');
 
 const config = getDefaultConfig(__dirname);
 
-// Use turborepo to restore the cache when possible
-config.cacheStores = [
-    new FileStore({ root: path.join(__dirname, 'node_modules', '.cache', 'metro') }),
-  ];
+// Add support for .ios.tsx files
+config.resolver.sourceExts = [...config.resolver.sourceExts, 'ios.tsx', 'ios.ts', 'ios.jsx', 'ios.js'];
+
+// Ensure proper module resolution
+config.resolver.resolverMainFields = ['react-native', 'browser', 'main'];
+
+// Add support for SVG
+config.transformer.babelTransformerPath = require.resolve('react-native-svg-transformer');
+config.resolver.assetExts = config.resolver.assetExts.filter(ext => ext !== 'svg');
+config.resolver.sourceExts = [...config.resolver.sourceExts, 'svg'];
 
 module.exports = config;

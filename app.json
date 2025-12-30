@@ -1,3 +1,4 @@
+
 {
   "expo": {
     "name": "Habitual",
@@ -7,6 +8,7 @@
     "icon": "./assets/images/natively-dark.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "platforms": ["ios"],
     "splash": {
       "image": "./assets/images/natively-dark.png",
       "resizeMode": "contain",
@@ -14,35 +16,49 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.Natively",
+      "bundleIdentifier": "com.habitual.app",
+      "buildNumber": "1.0.0",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/natively-dark.png",
-        "backgroundColor": "#000000"
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSMotionUsageDescription": "This app uses motion data to track your daily steps and activity.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to set custom habit icons.",
+        "NSCameraUsageDescription": "This app needs access to your camera to take photos for custom habit icons.",
+        "UIBackgroundModes": ["remote-notification"],
+        "NSUserTrackingUsageDescription": "This app does not track you."
       },
-      "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.Natively"
-    },
-    "web": {
-      "favicon": "./assets/images/final_quest_240x240.png",
-      "bundler": "metro"
+      "associatedDomains": ["applinks:natively.dev"]
     },
     "plugins": [
       "expo-font",
       "expo-router",
-      "expo-web-browser"
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/natively-dark.png",
+          "color": "#29ABE2",
+          "sounds": []
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app needs access to your photos to set custom habit icons.",
+          "cameraPermission": "The app needs access to your camera to take photos for custom habit icons."
+        }
+      ],
+      "expo-sensors"
     ],
-    "scheme": "natively",
+    "scheme": "habitual",
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
-      "router": {}
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "your-project-id-here"
+      }
     }
-  },
-  "scheme": "Habitual"
+  }
 }
