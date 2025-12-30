@@ -5,6 +5,7 @@ import { DailyWellness, StepData, WaterIntake, SleepLog, MoodEntry, FocusSession
 import * as Haptics from 'expo-haptics';
 
 const WELLNESS_STORAGE_KEY = '@wellness_data';
+let saveQueue: Promise<void> = Promise.resolve();
 
 export function useWellness() {
   const [wellnessData, setWellnessData] = useState<DailyWellness[]>([]);
@@ -19,22 +20,27 @@ export function useWellness() {
       setLoading(true);
       const data = await AsyncStorage.getItem(WELLNESS_STORAGE_KEY);
       if (data) {
-        setWellnessData(JSON.parse(data));
+        const parsed = JSON.parse(data);
+        setWellnessData(Array.isArray(parsed) ? parsed : []);
       }
     } catch (error) {
       console.error('Error loading wellness data:', error);
+      setWellnessData([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
   const saveWellnessData = useCallback(async (data: DailyWellness[]) => {
-    try {
-      await AsyncStorage.setItem(WELLNESS_STORAGE_KEY, JSON.stringify(data));
-      setWellnessData(data);
-    } catch (error) {
-      console.error('Error saving wellness data:', error);
-    }
+    saveQueue = saveQueue.then(async () => {
+      try {
+        await AsyncStorage.setItem(WELLNESS_STORAGE_KEY, JSON.stringify(data));
+        setWellnessData(data);
+      } catch (error) {
+        console.error('Error saving wellness data:', error);
+      }
+    });
+    return saveQueue;
   }, []);
 
   const getTodayData = useCallback((): DailyWellness => {
@@ -142,8 +148,8 @@ export function useWellness() {
 
       if (dataDate.getTime() === currentDate.getTime()) {
         const isComplete = 
-          data.water.glasses >= data.water.goal * 0.8 ||
-          data.steps.steps >= data.steps.goal * 0.8 ||
+          (data.water?.glasses || 0) >= (data.water?.goal || 8) * 0.8 ||
+          (data.steps?.steps || 0) >= (data.steps?.goal || 10000) * 0.8 ||
           data.sleep !== undefined ||
           data.mood !== undefined;
 

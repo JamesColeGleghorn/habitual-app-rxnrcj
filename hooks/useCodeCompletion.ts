@@ -18,8 +18,10 @@ export function useCodeCompletion() {
   }, []);
 
   const abort = useCallback(() => {
-    abortRef.current?.abort();
-    abortRef.current = null;
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
   }, []);
 
   const complete = useCallback(async (params: CodeCompletionRequest): Promise<CodeCompletionResponse | null> => {
@@ -46,8 +48,16 @@ export function useCodeCompletion() {
         },
       });
 
+      if (controller.signal.aborted) {
+        return null;
+      }
+
       if (error) {
         throw new Error(error.message || 'Function error');
+      }
+
+      if (!data) {
+        throw new Error('No data returned from function');
       }
 
       const result = data as CodeCompletionResponse;
@@ -58,6 +68,7 @@ export function useCodeCompletion() {
         return null;
       }
       const errorMessage = e?.message ?? 'Unknown error';
+      console.error('Code completion error:', errorMessage);
       setState({ status: 'error', data: null, error: errorMessage });
       return null;
     } finally {

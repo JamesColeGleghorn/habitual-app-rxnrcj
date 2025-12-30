@@ -1,17 +1,16 @@
 
 import { useState, useEffect } from 'react';
 import { Pedometer } from 'expo-sensors';
-import { Platform } from 'react-native';
 
 export function usePedometer() {
   const [isPedometerAvailable, setIsPedometerAvailable] = useState(false);
   const [currentStepCount, setCurrentStepCount] = useState(0);
-  const [pastStepCount, setPastStepCount] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let subscription: any;
+    let subscription: any = null;
 
-    const subscribe = async () => {
+    const initPedometer = async () => {
       try {
         const isAvailable = await Pedometer.isAvailableAsync();
         setIsPedometerAvailable(isAvailable);
@@ -21,26 +20,32 @@ export function usePedometer() {
           const start = new Date();
           start.setHours(0, 0, 0, 0);
 
-          const pastStepCountResult = await Pedometer.getStepCountAsync(start, end);
-          if (pastStepCountResult) {
-            setPastStepCount(pastStepCountResult.steps);
-            setCurrentStepCount(pastStepCountResult.steps);
+          try {
+            const pastStepCountResult = await Pedometer.getStepCountAsync(start, end);
+            if (pastStepCountResult) {
+              setCurrentStepCount(pastStepCountResult.steps);
+            }
+          } catch (err) {
+            console.error('Error getting past step count:', err);
           }
 
           subscription = Pedometer.watchStepCount(result => {
-            setCurrentStepCount(result.steps);
+            if (result && typeof result.steps === 'number') {
+              setCurrentStepCount(prev => prev + result.steps);
+            }
           });
         }
-      } catch (error) {
-        console.error('Error setting up pedometer:', error);
+      } catch (err) {
+        console.error('Error initializing pedometer:', err);
+        setError('Failed to initialize pedometer');
         setIsPedometerAvailable(false);
       }
     };
 
-    subscribe();
+    initPedometer();
 
     return () => {
-      if (subscription) {
+      if (subscription && typeof subscription.remove === 'function') {
         subscription.remove();
       }
     };
@@ -49,6 +54,6 @@ export function usePedometer() {
   return {
     isPedometerAvailable,
     currentStepCount,
-    pastStepCount,
+    error,
   };
 }

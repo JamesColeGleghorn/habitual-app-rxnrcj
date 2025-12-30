@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Habit } from '@/types/habit';
 
 const HABITS_KEY = '@habits';
+let saveQueue: Promise<void> = Promise.resolve();
 
 export const habitStorage = {
   async getHabits(): Promise<Habit[]> {
@@ -10,8 +11,13 @@ export const habitStorage = {
       const habitsJson = await AsyncStorage.getItem(HABITS_KEY);
       if (habitsJson) {
         const habits = JSON.parse(habitsJson);
-        console.log('Loaded habits:', habits.length);
-        return habits;
+        const validHabits = habits.map((h: any) => ({
+          ...h,
+          completedDates: Array.isArray(h.completedDates) ? h.completedDates : [],
+          createdAt: h.createdAt || new Date().toISOString(),
+        }));
+        console.log('Loaded habits:', validHabits.length);
+        return validHabits;
       }
       console.log('No habits found, returning empty array');
       return [];
@@ -22,21 +28,34 @@ export const habitStorage = {
   },
 
   async saveHabits(habits: Habit[]): Promise<void> {
-    try {
-      await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(habits));
-      console.log('Saved habits:', habits.length);
-    } catch (error) {
-      console.error('Error saving habits:', error);
-      throw error;
-    }
+    saveQueue = saveQueue.then(async () => {
+      try {
+        const validHabits = habits.map(h => ({
+          ...h,
+          completedDates: Array.isArray(h.completedDates) ? h.completedDates : [],
+          createdAt: h.createdAt || new Date().toISOString(),
+        }));
+        await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(validHabits));
+        console.log('Saved habits:', validHabits.length);
+      } catch (error) {
+        console.error('Error saving habits:', error);
+        throw error;
+      }
+    });
+    return saveQueue;
   },
 
   async addHabit(habit: Habit): Promise<void> {
     try {
       const habits = await this.getHabits();
-      habits.push(habit);
+      const newHabit = {
+        ...habit,
+        completedDates: [],
+        createdAt: habit.createdAt || new Date().toISOString(),
+      };
+      habits.push(newHabit);
       await this.saveHabits(habits);
-      console.log('Added habit:', habit.name);
+      console.log('Added habit:', newHabit.name);
     } catch (error) {
       console.error('Error adding habit:', error);
       throw error;
@@ -48,7 +67,13 @@ export const habitStorage = {
       const habits = await this.getHabits();
       const index = habits.findIndex(h => h.id === habitId);
       if (index !== -1) {
-        habits[index] = { ...habits[index], ...updates };
+        habits[index] = { 
+          ...habits[index], 
+          ...updates,
+          completedDates: Array.isArray(updates.completedDates) 
+            ? updates.completedDates 
+            : habits[index].completedDates,
+        };
         await this.saveHabits(habits);
         console.log('Updated habit:', habitId);
       } else {
@@ -109,30 +134,31 @@ export const habitStorage = {
     try {
       const existingHabits = await this.getHabits();
       if (existingHabits.length === 0) {
+        const now = new Date().toISOString();
         const defaultHabits: Habit[] = [
           {
             id: '1',
             name: 'Drink Water',
             icon: 'water_drop',
             color: '#4A90E2',
-            dates: {},
             completedDates: [],
+            createdAt: now,
           },
           {
             id: '2',
             name: 'Exercise',
             icon: 'fitness_center',
             color: '#29ABE2',
-            dates: {},
             completedDates: [],
+            createdAt: now,
           },
           {
             id: '3',
             name: 'Read',
             icon: 'menu_book',
             color: '#F2BE22',
-            dates: {},
             completedDates: [],
+            createdAt: now,
           },
         ];
         await this.saveHabits(defaultHabits);

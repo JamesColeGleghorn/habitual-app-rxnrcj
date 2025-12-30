@@ -9,13 +9,11 @@ export default function RootLayout() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // Initialize notifications
         const hasPermission = await requestNotificationPermissions();
         if (hasPermission) {
           await scheduleWellnessReminders();
         }
 
-        // Initialize default habits if none exist
         await habitStorage.initializeDefaultHabits();
       } catch (error) {
         console.error('Error initializing app:', error);

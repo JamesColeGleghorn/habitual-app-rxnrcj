@@ -6,9 +6,8 @@ export interface Habit {
   color: string;
   reminderTime?: string;
   completedDates: string[];
-  createdAt?: string;
-  dates?: { [date: string]: boolean };
-  customImage?: string; // URI to custom image
+  createdAt: string;
+  customImage?: string;
 }
 
 export interface HabitCompletion {

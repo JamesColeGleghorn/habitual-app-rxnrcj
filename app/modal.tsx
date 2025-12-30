@@ -39,6 +39,7 @@ export default function AddHabitModal() {
   const [selectedIcon, setSelectedIcon] = useState(HABIT_ICONS[0]);
   const [selectedColor, setSelectedColor] = useState(colors.primary);
   const [customImage, setCustomImage] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const HABIT_COLORS = [
     colors.primary,
@@ -82,19 +83,27 @@ export default function AddHabitModal() {
   };
 
   const handleSave = async () => {
-    if (name.trim()) {
-      try {
-        await addHabit({
-          name: name.trim(),
-          icon: selectedIcon.android,
-          color: selectedColor,
-          customImage: customImage || undefined,
-        });
-        router.back();
-      } catch (error) {
-        console.error('Error adding habit:', error);
-        Alert.alert('Error', 'Failed to create habit. Please try again.');
-      }
+    if (!name.trim()) {
+      Alert.alert('Error', 'Please enter a habit name');
+      return;
+    }
+
+    if (saving) return;
+
+    try {
+      setSaving(true);
+      await addHabit({
+        name: name.trim(),
+        icon: selectedIcon.android,
+        color: selectedColor,
+        customImage: customImage || undefined,
+      });
+      router.back();
+    } catch (error) {
+      console.error('Error adding habit:', error);
+      Alert.alert('Error', 'Failed to create habit. Please try again.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -134,6 +143,7 @@ export default function AddHabitModal() {
             onChangeText={setName}
             autoFocus
             returnKeyType="done"
+            editable={!saving}
           />
         </View>
 
@@ -153,6 +163,7 @@ export default function AddHabitModal() {
               <TouchableOpacity 
                 style={styles.removeImageButton}
                 onPress={removeCustomImage}
+                disabled={saving}
               >
                 <IconSymbol
                   ios_icon_name="xmark.circle.fill"
@@ -166,6 +177,7 @@ export default function AddHabitModal() {
             <TouchableOpacity 
               style={styles.uploadButton}
               onPress={pickImage}
+              disabled={saving}
             >
               <IconSymbol
                 ios_icon_name="photo.badge.plus"
@@ -179,7 +191,7 @@ export default function AddHabitModal() {
         </View>
 
         {!customImage && (
-          <>
+          <React.Fragment>
             <View style={styles.section}>
               <Text style={styles.label}>Choose Icon</Text>
               <Text style={styles.helperText}>
@@ -194,6 +206,7 @@ export default function AddHabitModal() {
                       selectedIcon.android === icon.android && styles.iconOptionSelected,
                     ]}
                     onPress={() => setSelectedIcon(icon)}
+                    disabled={saving}
                   >
                     <IconSymbol
                       ios_icon_name={icon.ios}
@@ -218,6 +231,7 @@ export default function AddHabitModal() {
                       selectedColor === color && styles.colorOptionSelected,
                     ]}
                     onPress={() => setSelectedColor(color)}
+                    disabled={saving}
                   >
                     {selectedColor === color && (
                       <IconSymbol
@@ -231,15 +245,17 @@ export default function AddHabitModal() {
                 ))}
               </View>
             </View>
-          </>
+          </React.Fragment>
         )}
 
         <TouchableOpacity
-          style={[styles.saveButton, !name.trim() && styles.saveButtonDisabled]}
+          style={[styles.saveButton, (!name.trim() || saving) && styles.saveButtonDisabled]}
           onPress={handleSave}
-          disabled={!name.trim()}
+          disabled={!name.trim() || saving}
         >
-          <Text style={styles.saveButtonText}>Create Habit</Text>
+          <Text style={styles.saveButtonText}>
+            {saving ? 'Creating...' : 'Create Habit'}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
