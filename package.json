@@ -5,6 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "start": "EXPO_NO_TELEMETRY=1 expo start",
+    "dev": "EXPO_NO_TELEMETRY=1 expo start --clear",
     "ios": "EXPO_NO_TELEMETRY=1 expo start --ios",
     "ios:device": "EXPO_NO_TELEMETRY=1 expo start --ios --device",
     "prebuild:ios": "expo prebuild -p ios --clean",
