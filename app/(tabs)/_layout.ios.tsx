@@ -1,28 +1,30 @@
 
 import React from 'react';
-import { NativeTabs } from 'expo-router/unstable-native-tabs';
+import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
+import { DynamicColorIOS } from 'react-native';
 
 export default function TabLayout() {
   return (
-    <NativeTabs>
-      <NativeTabs.Screen
-        name="(home)"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ focused }) => ({
-            sfSymbol: focused ? 'house.fill' : 'house',
-          }),
-        }}
-      />
-      <NativeTabs.Screen
-        name="profile"
-        options={{
-          title: 'Progress',
-          tabBarIcon: ({ focused }) => ({
-            sfSymbol: focused ? 'chart.bar.fill' : 'chart.bar',
-          }),
-        }}
-      />
+    <NativeTabs
+      labelStyle={{
+        color: DynamicColorIOS({
+          dark: 'white',
+          light: 'black',
+        }),
+      }}
+      tintColor={DynamicColorIOS({
+        dark: '#29ABE2',
+        light: '#29ABE2',
+      })}
+    >
+      <NativeTabs.Trigger name="(home)">
+        <Label>Home</Label>
+        <Icon sf={{ default: 'house', selected: 'house.fill' }} />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="profile">
+        <Label>Progress</Label>
+        <Icon sf={{ default: 'chart.bar', selected: 'chart.bar.fill' }} />
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
