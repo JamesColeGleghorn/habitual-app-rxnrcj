@@ -68,7 +68,7 @@ export function useHabits() {
     }
   }, [loadHabits]);
 
-  const toggleHabitCompletion = useCallback(async (habitId: string) => {
+  const toggleHabitCompletion = useCallback(async (habitId: string, onXPEarned?: (xp: number) => void) => {
     try {
       const today = getTodayDateString();
       await habitStorage.toggleHabitCompletion(habitId, today);
@@ -78,6 +78,10 @@ export function useHabits() {
       
       if (isCompleting) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        if (onXPEarned) {
+          const xp = 10;
+          onXPEarned(xp);
+        }
       } else {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,6 +7,7 @@ import { HabitCard } from '@/components/HabitCard';
 import { IconSymbol } from '@/components/IconSymbol';
 import { useHabits } from '@/hooks/useHabits';
 import { useWellness } from '@/hooks/useWellness';
+import { useGamification } from '@/hooks/useGamification';
 import { useThemeColors } from '@/styles/commonStyles';
 import { getRandomQuote } from '@/utils/motivationalQuotes';
 
@@ -16,8 +17,15 @@ export default function HomeScreen() {
   const colors = useThemeColors();
   const { habits, loading, toggleHabitCompletion } = useHabits();
   const { calculateStreak } = useWellness();
+  const { userLevel, addXP, checkAndAwardBadges } = useGamification(habits);
   const [quote] = useState(getRandomQuote());
   const wellnessStreak = calculateStreak();
+
+  useEffect(() => {
+    if (habits.length > 0) {
+      checkAndAwardBadges();
+    }
+  }, [habits, checkAndAwardBadges]);
 
   const handleAddHabit = () => {
     router.push('/modal');
@@ -25,6 +33,15 @@ export default function HomeScreen() {
 
   const handleHabitPress = (habitId: string) => {
     console.log('Habit pressed:', habitId);
+  };
+
+  const handleToggleHabit = async (habitId: string) => {
+    await toggleHabitCompletion(habitId, async (xp) => {
+      const leveledUp = await addXP(xp);
+      if (leveledUp) {
+        console.log('Level up!');
+      }
+    });
   };
 
   const styles = createStyles(colors);
@@ -37,8 +54,24 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Habit Streak</Text>
-          <Text style={styles.subtitle}>Build better habits, one day at a time</Text>
+          <View style={styles.headerTop}>
+            <View>
+              <Text style={styles.title}>Habit Streak</Text>
+              <Text style={styles.subtitle}>Build better habits, one day at a time</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.levelBadge}
+              onPress={() => router.push('/(tabs)/(home)/gamification')}
+            >
+              <IconSymbol
+                ios_icon_name="star.fill"
+                android_material_icon_name="star"
+                size={20}
+                color={colors.secondary}
+              />
+              <Text style={styles.levelText}>Level {userLevel.level}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.quickAccessSection}>
@@ -86,6 +119,44 @@ export default function HomeScreen() {
             <Text style={styles.quickAccessTitle}>Weekly Insights</Text>
             <Text style={styles.quickAccessSubtitle}>
               View trends & correlations
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.quickAccessSection}>
+          <TouchableOpacity 
+            style={styles.quickAccessCard}
+            onPress={() => router.push('/(tabs)/(home)/gamification')}
+          >
+            <View style={styles.quickAccessIcon}>
+              <IconSymbol
+                ios_icon_name="trophy.fill"
+                android_material_icon_name="emoji_events"
+                size={32}
+                color="#FFD700"
+              />
+            </View>
+            <Text style={styles.quickAccessTitle}>Achievements</Text>
+            <Text style={styles.quickAccessSubtitle}>
+              Badges, challenges & rewards
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.quickAccessCard}
+            onPress={() => router.push('/(tabs)/(home)/ai-insights')}
+          >
+            <View style={styles.quickAccessIcon}>
+              <IconSymbol
+                ios_icon_name="brain.head.profile"
+                android_material_icon_name="psychology"
+                size={32}
+                color="#9B59B6"
+              />
+            </View>
+            <Text style={styles.quickAccessTitle}>AI Insights</Text>
+            <Text style={styles.quickAccessSubtitle}>
+              Smart suggestions & patterns
             </Text>
           </TouchableOpacity>
         </View>
@@ -160,7 +231,7 @@ export default function HomeScreen() {
                 <HabitCard
                   key={habit.id}
                   habit={habit}
-                  onToggle={() => toggleHabitCompletion(habit.id)}
+                  onToggle={() => handleToggleHabit(habit.id)}
                   onPress={() => handleHabitPress(habit.id)}
                 />
               ))}
@@ -188,6 +259,11 @@ const createStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.c
     marginBottom: 24,
     marginTop: 16,
   },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
   title: {
     fontSize: 32,
     fontWeight: '800',
@@ -197,6 +273,25 @@ const createStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.c
   subtitle: {
     fontSize: 16,
     color: colors.textSecondary,
+  },
+  levelBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.card,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  levelText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.text,
   },
   quickAccessSection: {
     flexDirection: 'row',
