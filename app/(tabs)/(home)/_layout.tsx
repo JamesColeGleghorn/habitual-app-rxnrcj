@@ -12,6 +12,7 @@ export default function HomeLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="dashboard" />
       <Stack.Screen name="insights" />
+      <Stack.Screen name="code-completion" />
     </Stack>
   );
 }

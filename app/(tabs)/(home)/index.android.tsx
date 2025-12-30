@@ -88,6 +88,32 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
+        <TouchableOpacity 
+          style={styles.codeCompletionCard}
+          onPress={() => router.push('/(tabs)/(home)/code-completion')}
+        >
+          <View style={styles.codeCompletionIcon}>
+            <IconSymbol
+              ios_icon_name="chevron.left.forwardslash.chevron.right"
+              android_material_icon_name="code"
+              size={32}
+              color="#FFFFFF"
+            />
+          </View>
+          <View style={styles.codeCompletionContent}>
+            <Text style={styles.codeCompletionTitle}>Code Completion Tool</Text>
+            <Text style={styles.codeCompletionSubtitle}>
+              AI-powered code suggestions with OpenRouter
+            </Text>
+          </View>
+          <IconSymbol
+            ios_icon_name="chevron.right"
+            android_material_icon_name="chevron_right"
+            size={24}
+            color="#FFFFFF"
+          />
+        </TouchableOpacity>
+
         <View style={styles.quoteCard}>
           <IconSymbol
             ios_icon_name="quote.bubble.fill"
@@ -273,5 +299,36 @@ const createStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.c
     color: colors.textSecondary,
     marginTop: 8,
     textAlign: 'center',
+  },
+  codeCompletionCard: {
+    backgroundColor: colors.primary,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  codeCompletionIcon: {
+    marginRight: 16,
+  },
+  codeCompletionContent: {
+    flex: 1,
+  },
+  codeCompletionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  codeCompletionSubtitle: {
+    fontSize: 13,
+    color: '#FFFFFF',
+    opacity: 0.9,
+    lineHeight: 18,
   },
 });
